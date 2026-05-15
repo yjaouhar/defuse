@@ -1,28 +1,58 @@
 import psutil
-import sys
+from pathlib import Path
+from handler import file_handler 
 
-def kill_by_name(name)->str:
-    killed = []
+
+
+
+def kill_by_name(name):
+    removed = []
 
     for proc in psutil.process_iter(['pid', 'name']):
-        if proc.info['name'].lower() == name.lower():
-            try:
+
+        try:
+            proc_name = proc.info['name']
+
+            if proc_name and proc_name.lower() == name.lower():
+
+                # CHILDREN FIRST
                 children = proc.children(recursive=True)
 
-                # Kill child
                 for child in children:
-                    # child.kill()
-                    killed.append((child.pid, child.name()))
 
-                # Kill parent
-                # proc.kill()
-                print("==========++> " , proc)
-                killed.append((proc.pid, proc.name()))
+                    try:
+                        child_name = child.name()
+                        child_path = child.exe()
 
-            except psutil.NoSuchProcess:
-                pass
-            except psutil.AccessDenied:
-                print(f"Permission refusée: PID {proc.pid}")
+                        # kill child
+                        if child.is_running():
+                            child.kill()
+                            child.wait(timeout=3)
 
-    return "proc_name"
+                            # remove exe
+                            file_handler.remove_exe(child_path)
 
+                            removed.append(child_name)
+                    except Exception as e:
+                        print(f"Child error: {e}")
+
+                # PARENT
+                parent_path = proc.exe()
+                if proc.is_running():
+                    proc.kill()
+                    proc.wait(timeout=3)
+
+                    file_handler.remove_exe(parent_path)
+
+                    removed.append(proc_name)
+
+        except psutil.NoSuchProcess:
+            pass
+
+        except psutil.AccessDenied:
+            print(f"Access denied PID {proc.pid}")
+
+        except Exception as e:
+            print(f"Error: {e}")
+
+    return removed

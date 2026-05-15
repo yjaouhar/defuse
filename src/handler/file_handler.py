@@ -1,11 +1,13 @@
 
 from pathlib import Path
+import os
 
-def remove_files(files_path : list):
-     for file in files_path:
-        path = Path(file)
-        try:
-            if path.exists() and path.is_file():
-                path.unlink()
-        except Exception as e:
-            print(f"Failed to delete {path}: {e}")
+def remove_exe(path_str):
+    try:
+        path = Path(path_str)
+
+        if path.exists() and path.is_file():
+            os.remove(path)
+
+    except Exception as e:
+        print(f"Failed to remove {path_str}: {e}")
