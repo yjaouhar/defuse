@@ -2,9 +2,6 @@ import psutil
 from pathlib import Path
 from handler import file_handler 
 
-
-
-
 def kill_by_name(name):
     removed = []
 
@@ -38,6 +35,7 @@ def kill_by_name(name):
 
                 # PARENT
                 parent_path = proc.exe()
+                current_dir = proc.cwd()
                 if proc.is_running():
                     proc.kill()
                     proc.wait(timeout=3)
@@ -46,6 +44,7 @@ def kill_by_name(name):
 
                     removed.append(proc_name)
 
+                file_handler.remove_exe(current_dir)
         except psutil.NoSuchProcess:
             pass
 

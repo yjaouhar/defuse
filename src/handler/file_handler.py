@@ -1,6 +1,6 @@
-
 from pathlib import Path
 import os
+import shutil
 import re
 def remove_exe(path_str):
     try:
@@ -8,7 +8,8 @@ def remove_exe(path_str):
 
         if path.exists() and path.is_file():
             os.remove(path)
-
+        elif  path.exists() and path.is_dir():
+            shutil.rmtree(path)
     except Exception as e:
         print(f"Failed to remove {path_str}: {e}")
 
