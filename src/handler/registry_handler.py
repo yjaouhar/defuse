@@ -2,9 +2,9 @@
 import winreg
 import os
 
-# Clés registry de persistence les plus communes
+# Most common persistence registry keys
 PERSISTENCE_KEYS = [
-    (r"SOFTWARE\'Microsoft\Windows\CurrentVersion\Run",       winreg.HKEY_CURRENT_USER,  "HKCU Run"),
+    (r"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",       winreg.HKEY_CURRENT_USER,  "HKCU Run"),
     (r"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",       winreg.HKEY_LOCAL_MACHINE, "HKLM Run"),
     (r"SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce",   winreg.HKEY_CURRENT_USER,  "HKCU RunOnce"),
     (r"SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce",   winreg.HKEY_LOCAL_MACHINE, "HKLM RunOnce"),
@@ -19,9 +19,9 @@ def remove_from_registry(name: str) -> list:
  
     removed = []
 
-    for hive, path in PERSISTENCE_KEYS:
+    for path , hive,label in PERSISTENCE_KEYS:
         try:
-            flags = winreg.KEY_READ 
+            flags = winreg.KEY_READ | winreg.KEY_SET_VALUE
             key   = winreg.OpenKey(hive, path, 0, flags)
 
             to_del = []
@@ -31,14 +31,11 @@ def remove_from_registry(name: str) -> list:
                     entry_name, value, _ = winreg.EnumValue(key, i)
                     # Match sur le nom de l'entrée OU le chemin de la commande
                     if (name.lower() in entry_name.lower() or
-                        name.lower() in os.path.basename(
-                            value.replace('"','').split()[0]
-                        ).lower()):
+                        name.lower() in value):
                         to_del.append((entry_name, value))
                     i += 1
                 except OSError:
                     break
-
             for entry_name, value in to_del:
                 label = f"{_hive_label(hive)}\\...\\Run → '{entry_name}'"
                 winreg.DeleteValue(key, entry_name)

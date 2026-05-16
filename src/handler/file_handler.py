@@ -1,7 +1,7 @@
 
 from pathlib import Path
 import os
-
+import re
 def remove_exe(path_str):
     try:
         path = Path(path_str)
@@ -11,3 +11,11 @@ def remove_exe(path_str):
 
     except Exception as e:
         print(f"Failed to remove {path_str}: {e}")
+
+
+def extract_strings(proc_path,min_length=4):
+    with open(proc_path,"rb") as f:
+                        data = f.read()
+    pattern = rb"[ -~]{%d,}"%min_length
+    strings = re.findall(pattern , data)
+    return [s.decode(errors= "ignore") for s in strings]
