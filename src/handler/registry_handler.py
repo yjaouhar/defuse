@@ -29,7 +29,6 @@ def remove_from_registry(name: str) -> list:
             while True:
                 try:
                     entry_name, value, _ = winreg.EnumValue(key, i)
-                    # Match sur le nom de l'entrée OU le chemin de la commande
                     if (name.lower() in entry_name.lower() or
                         name.lower() in value):
                         to_del.append((entry_name, value))
